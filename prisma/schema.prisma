@@ -1,0 +1,274 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["views"]
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model PlansFeature {
+  id     String  @id @default(auto()) @map("_id") @db.ObjectId
+  name   String?
+  desc   String?
+  status String?
+
+  is_active  Boolean   @default(false)
+  priority   Int?
+  created_at DateTime? @default(now())
+  updated_at DateTime? @updatedAt
+  Plans      Plans[]
+
+  @@map("plans_feature")
+}
+
+model Plans {
+  id               String        @id @default(auto()) @map("_id") @db.ObjectId
+  name             String
+  type             String
+  plan_description String
+  stripe_month_id  String?
+  stripe_year_id   String?
+  plan_charges     Float?
+  plan_tax         Float?
+  status           String?
+  is_deleted       Boolean       @default(false)
+  created_at       DateTime?     @default(now())
+  updated_at       DateTime?     @updatedAt
+  features         PlanFeature[]
+  plan_feature     String[]      @db.ObjectId
+  PlansFeatures    PlansFeature? @relation(fields: [plan_feature], references: [id])
+  UserPlans        UserPlans[]
+
+  @@map("plans")
+}
+
+model UserPlans {
+  id                    String                @id @default(auto()) @map("_id") @db.ObjectId
+  user_id               String?               @db.ObjectId
+  plan_id               String?               @db.ObjectId
+  subscription          String
+  charges               Float?
+  expiry_date           DateTime?             @updatedAt
+  status                StorePlanStatusEnums? @default(hold)
+  failed_transaction    TransactionFailed?
+  subscription_canceled SubscriptionCanceled?
+  is_deleted            Boolean               @default(false)
+  created_at            DateTime?             @default(now())
+  updated_at            DateTime?             @updatedAt
+  Plans                 Plans?                @relation(fields: [plan_id], references: [id])
+  User                  User?                 @relation(fields: [user_id], references: [id])
+  BillingHistory        BillingHistory[]
+
+  @@index([user_id])
+  @@map("user_plans")
+}
+
+model BillingHistory {
+  id                  String            @id @default(auto()) @map("_id") @db.ObjectId
+  user_id             String?           @db.ObjectId
+  plan_id             String?           @db.ObjectId
+  subscription_type   SubscriptionEnums @default(monthly)
+  tax_charges         Float?
+  start_date          DateTime?         @default(now())
+  end_date            DateTime?         @updatedAt
+  subscription_amount Float?
+  status              String?
+  is_deleted          Boolean           @default(false)
+  updated_at          DateTime?         @updatedAt
+  UserPlans           UserPlans?        @relation(fields: [plan_id], references: [id])
+  User                User?             @relation(fields: [user_id], references: [id])
+
+  @@index([user_id])
+  @@map("billing_history")
+}
+
+model Resources {
+  id         String  @id @default(auto()) @map("_id") @db.ObjectId
+  name       String
+  code       String
+  parent     Int?
+  is_deleted Boolean @default(false)
+
+  created_at     DateTime         @default(now())
+  updated_at     DateTime         @default(now())
+  RolePermission RolePermission[]
+
+  @@map("resources")
+}
+
+model Organization {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  name       String
+  is_deleted Boolean  @default(false)
+  role       String[] @db.ObjectId
+  roles      Role     @relation(fields: [role], references: [id])
+
+  User User[]
+
+  @@map("organization")
+}
+
+model RolePermission {
+  id          String     @id @default(auto()) @map("_id") @db.ObjectId
+  access      roleAccess @default(N)
+  resource_id String     @db.ObjectId
+  role_id     String     @db.ObjectId
+  is_deleted  Boolean    @default(false)
+
+  created_at DateTime   @default(now())
+  updated_at DateTime   @default(now())
+  Role       Role       @relation(fields: [role_id], references: [id])
+  Resources  Resources? @relation(fields: [resource_id], references: [id])
+
+  @@map("role_permission")
+}
+
+model Role {
+  id         String  @id @default(auto()) @map("_id") @db.ObjectId
+  name       String
+  is_deleted Boolean @default(false)
+
+  User          User[]
+  RolePermsions RolePermission[]
+  Organization  Organization[]
+
+  @@map("role")
+}
+
+model Levels {
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  description String
+  value       Int
+Skills      Skills[] @relation("Levels")
+ExpectedLevel      Skills? @relation("Expected")
+  @@map("Levels")
+}
+
+model Jsp {
+  id     String   @id @default(auto()) @map("_id") @db.ObjectId
+  name   String
+  skill  String[] @db.ObjectId
+  Skills Skills?  @relation(fields: [skill], references: [id])
+
+  @@map("jsp")
+}
+
+model Skills {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  name        String?  @default("")
+  description String?  @default("")
+  level       String[] @db.ObjectId
+  expected    String? @db.ObjectId @unique
+  Levels      Levels?  @relation("Levels",fields: [level], references: [id])
+  ExpectedLevel      Levels?  @relation("Expected",fields: [expected], references: [id]) 
+
+  Jsp         Jsp[]
+
+  @@map("skills")
+}
+
+model Psp {
+  id   String @id @default(auto()) @map("_id") @db.ObjectId
+  name String
+
+  @@map("psp")
+}
+
+model User {
+  id                 String  @id @default(auto()) @map("_id") @db.ObjectId
+  email              String  @unique
+  number             String?
+  password           String
+  first_name         String  @default("")
+  last_name          String? @default("")
+  full_name          String? @default("")
+  country            String?
+  city                String?
+  otp                Int?
+  stripe_customer_id String?
+  nic String?
+  referesh_token String?
+  role_id        String          @db.ObjectId
+  organization   String            @db.ObjectId
+  gender        gender_type      @default(male)
+  is_registered  Boolean          @default(false)
+  is_mentor      Boolean          @default(false)
+  is_deleted     Boolean          @default(false)
+  dob            DateTime         @default(now())
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  Role           Role?            @relation(fields: [role_id], references: [id])
+  BillingHistory BillingHistory[]
+  UserPlans      UserPlans[]
+  Organization   Organization?    @relation(fields: [organization], references: [id])
+
+  @@map("user")
+}
+
+model Setting {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  name       String
+  value      String[]
+  is_deleted Boolean  @default(false)
+
+  @@map("setting")
+}
+model EmailTemplate {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  subject       String
+  body        String
+  email_key   String 
+  is_deleted Boolean  @default(false)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  @@map("email_templates")
+
+}
+// types
+type TransactionFailed {
+  previous_plan_id String @db.ObjectId
+  reason           String @default("Canceled by user")
+}
+
+type PlanFeature {
+  value String? @default("")
+  label String? @default("")
+}
+
+type SubscriptionCanceled {
+  cancel_type        String
+  cancel_description String?
+}
+
+// enum examples
+enum gender_type {
+  male
+  female
+}
+
+enum order_coupons_coupon_type {
+  percentage
+  fixed
+}
+
+enum roleAccess {
+  W
+  R
+  N
+}
+
+enum StorePlanStatusEnums {
+  active
+  failed
+  canceled
+  hold
+}
+
+enum SubscriptionEnums {
+  monthly
+  yearly
+}
