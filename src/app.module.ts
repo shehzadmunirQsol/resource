@@ -12,6 +12,8 @@ import { AuthStrategy } from './auth/auth.strategy';
 import { EmailModule } from './email/email.module';
 import { SettingModule } from './setting/setting.module';
 import { PspsModule } from './psps/psps.module';
+import { LevelsModule } from './levels/levels.module';
+import { JspsModule } from './jsps/jsps.module';
 
 @Module({
   imports: [
@@ -39,6 +41,8 @@ import { PspsModule } from './psps/psps.module';
     EmailModule,
     SettingModule,
     PspsModule,
+    LevelsModule,
+    JspsModule,
   ],
   controllers: [AppController],
   providers: [

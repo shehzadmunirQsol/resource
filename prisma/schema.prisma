@@ -1,6 +1,6 @@
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["views"]
+  previewFeatures = ["views", "relationJoins"]
 }
 
 datasource db {
@@ -14,11 +14,11 @@ model PlansFeature {
   desc   String?
   status String?
 
-  is_active  Boolean   @default(false)
-  priority   Int?
-  created_at DateTime? @default(now())
-  updated_at DateTime? @updatedAt
-  Plans      Plans[]
+  is_active Boolean   @default(false)
+  priority  Int?
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt
+  Plans     Plans[]
 
   @@map("plans_feature")
 }
@@ -34,8 +34,8 @@ model Plans {
   plan_tax         Float?
   status           String?
   is_deleted       Boolean       @default(false)
-  created_at       DateTime?     @default(now())
-  updated_at       DateTime?     @updatedAt
+  createdAt        DateTime?     @default(now())
+  updatedAt        DateTime?     @updatedAt
   features         PlanFeature[]
   plan_feature     String[]      @db.ObjectId
   PlansFeatures    PlansFeature? @relation(fields: [plan_feature], references: [id])
@@ -55,8 +55,8 @@ model UserPlans {
   failed_transaction    TransactionFailed?
   subscription_canceled SubscriptionCanceled?
   is_deleted            Boolean               @default(false)
-  created_at            DateTime?             @default(now())
-  updated_at            DateTime?             @updatedAt
+  createdAt             DateTime?             @default(now())
+  updatedAt             DateTime?             @updatedAt
   Plans                 Plans?                @relation(fields: [plan_id], references: [id])
   User                  User?                 @relation(fields: [user_id], references: [id])
   BillingHistory        BillingHistory[]
@@ -76,7 +76,7 @@ model BillingHistory {
   subscription_amount Float?
   status              String?
   is_deleted          Boolean           @default(false)
-  updated_at          DateTime?         @updatedAt
+  updatedAt           DateTime?         @updatedAt
   UserPlans           UserPlans?        @relation(fields: [plan_id], references: [id])
   User                User?             @relation(fields: [user_id], references: [id])
 
@@ -91,8 +91,8 @@ model Resources {
   parent     Int?
   is_deleted Boolean @default(false)
 
-  created_at     DateTime         @default(now())
-  updated_at     DateTime         @default(now())
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @default(now())
   RolePermission RolePermission[]
 
   @@map("resources")
@@ -117,10 +117,10 @@ model RolePermission {
   role_id     String     @db.ObjectId
   is_deleted  Boolean    @default(false)
 
-  created_at DateTime   @default(now())
-  updated_at DateTime   @default(now())
-  Role       Role       @relation(fields: [role_id], references: [id])
-  Resources  Resources? @relation(fields: [resource_id], references: [id])
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @default(now())
+  Role      Role       @relation(fields: [role_id], references: [id])
+  Resources Resources? @relation(fields: [resource_id], references: [id])
 
   @@map("role_permission")
 }
@@ -130,81 +130,111 @@ model Role {
   name       String
   is_deleted Boolean @default(false)
 
-  User          User[]
+  User          User[]           @relation("rolename")
   RolePermsions RolePermission[]
   Organization  Organization[]
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @default(now())
+  Jsp           Jsp[]
 
   @@map("role")
 }
 
 model Levels {
-  id          String @id @default(auto()) @map("_id") @db.ObjectId
-  name        String
-  description String
-  value       Int
-Skills      Skills[] @relation("Levels")
-ExpectedLevel      Skills? @relation("Expected")
-  @@map("Levels")
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  description   String
+  value         Int?
+  Skills        Skills[] @relation("Levels")
+  ExpectedLevel Skills?  @relation("Expected")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now())
+
+  @@map("levels")
 }
 
-model Jsp {
-  id     String   @id @default(auto()) @map("_id") @db.ObjectId
-  name   String
-  skill  String[] @db.ObjectId
-  Skills Skills?  @relation(fields: [skill], references: [id])
+model Competencies {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  description String
+  value       Int?
+  Jsp         Jsp[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now())
 
-  @@map("jsp")
+  @@map("competencies")
 }
 
 model Skills {
   id String @id @default(auto()) @map("_id") @db.ObjectId
 
-  name        String?  @default("")
-  description String?  @default("")
-  level       String[] @db.ObjectId
-  expected    String? @db.ObjectId @unique
-  Levels      Levels?  @relation("Levels",fields: [level], references: [id])
-  ExpectedLevel      Levels?  @relation("Expected",fields: [expected], references: [id]) 
-
-  Jsp         Jsp[]
+  name          String?  @default("")
+  description   String?  @default("")
+  level         String[] @db.ObjectId
+  expected      String?  @unique @db.ObjectId
+  Levels        Levels?  @relation("Levels", fields: [level], references: [id])
+  ExpectedLevel Levels?  @relation("Expected", fields: [expected], references: [id])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now())
+  Jsp           Jsp?     @relation(fields: [jspId], references: [id])
+  jspId         String?  @db.ObjectId
 
   @@map("skills")
 }
 
+model Jsp {
+  id            String             @id @default(auto()) @map("_id") @db.ObjectId
+  name          String?
+  description   String?            @default("")
+  skill         String[]           @db.ObjectId
+  Skills        Skills[]
+  expected      JSPExpectedLevel[]
+  role_id       String             @db.ObjectId
+  Role          Role?              @relation(fields: [role_id], references: [id])
+  competency_id String?            @db.ObjectId
+  Competency    Competencies?      @relation(fields: [competency_id], references: [id])
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @default(now())
+
+  @@map("jsp")
+}
+
 model Psp {
-  id   String @id @default(auto()) @map("_id") @db.ObjectId
-  name String
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
 
   @@map("psp")
 }
 
 model User {
-  id                 String  @id @default(auto()) @map("_id") @db.ObjectId
-  email              String  @unique
+  id                 String           @id @default(auto()) @map("_id") @db.ObjectId
+  email              String           @unique
   number             String?
   password           String
-  first_name         String  @default("")
-  last_name          String? @default("")
-  full_name          String? @default("")
+  first_name         String           @default("")
+  last_name          String?          @default("")
+  full_name          String?          @default("")
   country            String?
-  city                String?
-  otp          String?
+  city               String?
+  otp                String?
   stripe_customer_id String?
-  nic String?
-  referesh_token String?
-  role_id        String          @db.ObjectId
-  organization   String            @db.ObjectId
-  gender        gender_type      @default(male)
-  is_registered  Boolean          @default(false)
-  is_mentor      Boolean          @default(false)
-  is_deleted     Boolean          @default(false)
-  dob            DateTime         @default(now())
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-  Role           Role?            @relation(fields: [role_id], references: [id])
-  BillingHistory BillingHistory[]
-  UserPlans      UserPlans[]
-  Organization   Organization?    @relation(fields: [organization], references: [id])
+  nic                String?
+  referesh_token     String?
+  role_id            String           @db.ObjectId
+  organization       String           @db.ObjectId
+  gender             gender_type      @default(male)
+  is_registered      Boolean          @default(false)
+  is_mentor          Boolean          @default(false)
+  is_deleted         Boolean          @default(false)
+  dob                DateTime         @default(now())
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  Role               Role?            @relation("rolename", fields: [role_id], references: [id])
+  BillingHistory     BillingHistory[]
+  UserPlans          UserPlans[]
+  Organization       Organization?    @relation(fields: [organization], references: [id])
 
   @@map("user")
 }
@@ -217,21 +247,28 @@ model Setting {
 
   @@map("setting")
 }
-model EmailTemplate {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  subject       String
-  body        String
-  email_key   String 
-  is_deleted Boolean  @default(false)
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-  @@map("email_templates")
 
+model EmailTemplate {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  subject    String
+  body       String
+  email_key  String
+  is_deleted Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("email_templates")
 }
+
 // types
 type TransactionFailed {
   previous_plan_id String @db.ObjectId
   reason           String @default("Canceled by user")
+}
+
+type JSPExpectedLevel {
+  skill_id String @db.ObjectId
+  expected String @db.ObjectId
 }
 
 type PlanFeature {
