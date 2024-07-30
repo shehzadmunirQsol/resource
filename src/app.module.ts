@@ -11,6 +11,7 @@ import { ApiLoggerModule } from './api-logger/api-logger.module';
 import { AuthStrategy } from './auth/auth.strategy';
 import { EmailModule } from './email/email.module';
 import { SettingModule } from './setting/setting.module';
+import { PspsModule } from './psps/psps.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { SettingModule } from './setting/setting.module';
     ApiLoggerModule,
     EmailModule,
     SettingModule,
+    PspsModule,
   ],
   controllers: [AppController],
   providers: [
