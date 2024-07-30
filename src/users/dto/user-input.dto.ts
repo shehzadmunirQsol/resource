@@ -25,8 +25,8 @@ export class ModuleInputDto {
   updated_on: Date;
 }
 
-export class VerifyOtp {
-  @IsNumber()
+export class VerifyOtpDto {
+  @IsString()
   @IsNotEmpty()
   otp: number;
 

@@ -188,7 +188,7 @@ model User {
   full_name          String? @default("")
   country            String?
   city                String?
-  otp                Int?
+  otp          String?
   stripe_customer_id String?
   nic String?
   referesh_token String?

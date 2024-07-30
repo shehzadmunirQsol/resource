@@ -18,7 +18,7 @@ import { ApiLoggerService } from '../api-logger/api-logger.service';
 import { LoginInputDto, ResgiterInputDto } from './dto/login-input.dto';
 import { LoginDto } from './dto/login.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { ModuleInputDto, VerifyOtp } from './dto/user-input.dto';
+import { ModuleInputDto, VerifyOtpDto } from './dto/user-input.dto';
 import { ProfileDto, ProfileUpdateDto } from './dto/profile';
 import { FindAllUsersDto } from './dto/find-all';
 import { CustomRequest } from 'src/types/custom-request.interface';
@@ -42,11 +42,11 @@ export class UsersController {
   }
   @Post('verify')
   @HttpCode(200)
-  verify(@Body() verifyOtpDto: VerifyOtp): Promise<LoginDto> {
+  verify(@Body() verifyOtpDto: VerifyOtpDto): Promise<LoginDto> {
     this.logger.log(
       `Request for otp verification ${JSON.stringify(verifyOtpDto)} `,
     );
-    return this.usersService.register(verifyOtpDto);
+    return this.usersService.verify(verifyOtpDto);
   }
   @Get('profile')
   @UseGuards(JwtAuthGuard)

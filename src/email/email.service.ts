@@ -16,7 +16,7 @@ export class EmailService {
       ...options,
     });
 
-    return { email: null };
+    return { email };
   }
 
   async sendEmail(
@@ -25,26 +25,33 @@ export class EmailService {
     body: string,
     bcc: string = '',
   ): Promise<void> {
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      host: 'smtp.gmail.com',
-      port: 465,
-      secure: true,
-      auth: {
-        user: `${process.env.EMAIL_USER}`,
-        pass: `${process.env.EMAIL_PASSWORD}`,
-      },
-    });
+    try {
+      const transporter = nodemailer.createTransport({
+        host: `${process.env.MAIL_HOST}`,
+        port: 465,
+        secure: true,
+        auth: {
+          user: `${process.env.MAIL_USERNAME}`,
+          pass: `${process.env.MAIL_PASSWORD}`,
+        },
+        tls: {
+          rejectUnauthorized: false, // Allow self-signed certificates
+        },
+      });
+      console.log({ host: process.env.MAIL_HOST });
 
-    const mailOptions = {
-      from: `${process.env.EMAIL_USER}`,
-      to,
-      bcc,
-      subject,
-      html: body,
-    };
+      const mailOptions = {
+        from: `${process.env.MAIL_USERNAME}`,
+        to,
+        bcc,
+        subject,
+        html: body,
+      };
 
-    await transporter.sendMail(mailOptions);
+      await transporter.sendMail(mailOptions);
+    } catch (error) {
+      console.log({ error });
+    }
   }
 
   async sendTemplatedEmail(
@@ -62,7 +69,7 @@ export class EmailService {
 
     const subject = replacePlaceholders(emailTemplate.email.subject, data);
     const body = replacePlaceholders(emailTemplate.email.body, data);
-
+    console.log({ body, data });
     await this.sendEmail(to, subject, body, bcc);
   }
 }
@@ -72,7 +79,7 @@ export function replacePlaceholders(
   data: Record<string, string>,
 ): string {
   return template.replace(
-    /\[([A-Z_]+)\]/g,
+    /\[([A-Za-z_]+)\]/g,
     (_, key) => data[key.toLowerCase()] || '',
   );
 }

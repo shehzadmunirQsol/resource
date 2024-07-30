@@ -9,7 +9,7 @@ import { LoginInputDto, ResgiterInputDto } from './dto/login-input.dto';
 import { LoginDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
 import PasswordHash from '../auth/password.hash';
-import { ModuleInputDto } from './dto/user-input.dto';
+import { ModuleInputDto, VerifyOtpDto } from './dto/user-input.dto';
 import { ProfileDto, ProfileUpdateDto } from './dto/profile';
 import { FindAllUsersDto } from './dto/find-all';
 import { ErrorUtil } from '../common/utils/error-util';
@@ -28,7 +28,7 @@ export class UsersService {
     private readonly passwordHash: PasswordHash,
   ) {}
 
-  // LoginDto
+  // Login
   async login(loginInputDto: LoginInputDto): Promise<any> {
     const payload: any = {};
     payload.email = loginInputDto?.user_name;
@@ -69,7 +69,7 @@ export class UsersService {
     });
     return updateUser;
   }
-  // LoginDto
+  // Register
   async register(registerInputDto: Prisma.UserUpdateInput): Promise<any> {
     const { password, confirm_password, ...payload }: any = {
       ...registerInputDto,
@@ -90,15 +90,46 @@ export class UsersService {
     });
     if (updateUser) {
       const otp = generateOTP(5);
+      await this.db.user.update({
+        where: { id: updateUser?.id },
+        data: { otp: otp },
+      });
+      const emailData = {
+        full_name: `${updateUser.full_name}`,
+        first_name: updateUser.first_name,
+        email: updateUser.email,
+        number: updateUser.number,
+        otp: otp,
+      };
+      await this.emailService.sendTemplatedEmail(
+        payload.email,
+        'otp_verification',
+        emailData,
+      );
       const accessToken = this.jwtService.sign({
         user_id: updateUser.id,
       });
-      await this.db.user.update({
-        where: { id: updateUser?.id },
-        data: { referesh_token: accessToken },
-      });
     }
     return updateUser;
+  }
+  async verify(verifyOtpInputDto: VerifyOtpDto): Promise<any> {
+    const payload: any = {
+      ...verifyOtpInputDto,
+    };
+
+    const user = await this.db.user.findFirst({
+      where: { email: payload?.email },
+    });
+    if (!user) throw new UnauthorizedException('User Not Found.');
+    const saltOrRounds: number = 10;
+
+    if (user) {
+      await this.db.user.update({
+        where: { id: user?.id },
+        data: { is_registered: true },
+      });
+    }
+    return user;
   }
 
   async findAuhtoizeduser(user_id: string) {
