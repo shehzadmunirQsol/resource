@@ -133,22 +133,23 @@ model Role {
   User          User[]           @relation("rolename")
   RolePermsions RolePermission[]
   Organization  Organization[]
-  createdAt     DateTime         @default(now())
-  updatedAt     DateTime         @default(now())
+  createdAt     DateTime?        @default(now())
+  updatedAt     DateTime?        @default(now())
   Jsp           Jsp[]
 
   @@map("role")
 }
 
 model Levels {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  name          String
-  description   String
-  value         Int?
-  Skills        Skills[] @relation("Levels")
-  ExpectedLevel Skills?  @relation("Expected")
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @default(now())
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  description String
+  value       Int?
+
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @default(now())
+  JspSkill  JspSkill[]
+  Skills    Skills[]
 
   @@map("levels")
 }
@@ -168,35 +169,44 @@ model Competencies {
 model Skills {
   id String @id @default(auto()) @map("_id") @db.ObjectId
 
-  name          String?  @default("")
-  description   String?  @default("")
-  level         String[] @db.ObjectId
-  expected      String?  @unique @db.ObjectId
-  Levels        Levels?  @relation("Levels", fields: [level], references: [id])
-  ExpectedLevel Levels?  @relation("Expected", fields: [expected], references: [id])
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @default(now())
-  Jsp           Jsp?     @relation(fields: [jspId], references: [id])
-  jspId         String?  @db.ObjectId
+  name          String?    @default("")
+  description   String?    @default("")
+  level         String[]   @db.ObjectId
+  SkillLevels Levels?    @relation(fields: [level], references: [id])
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @default(now())
+  JspSkill      JspSkill[]
 
   @@map("skills")
 }
 
 model Jsp {
-  id            String             @id @default(auto()) @map("_id") @db.ObjectId
+  id            String        @id @default(auto()) @map("_id") @db.ObjectId
   name          String?
-  description   String?            @default("")
-  skill         String[]           @db.ObjectId
-  Skills        Skills[]
-  expected      JSPExpectedLevel[]
-  role_id       String             @db.ObjectId
-  Role          Role?              @relation(fields: [role_id], references: [id])
-  competency_id String?            @db.ObjectId
-  Competency    Competencies?      @relation(fields: [competency_id], references: [id])
-  createdAt     DateTime           @default(now())
-  updatedAt     DateTime           @default(now())
+  description   String?       @default("")
+  role_id       String        @db.ObjectId
+  Role          Role?         @relation(fields: [role_id], references: [id])
+  competency_id String?       @db.ObjectId
+  Competency    Competencies? @relation(fields: [competency_id], references: [id])
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @default(now())
+  JspSkill      JspSkill[]
 
   @@map("jsp")
+}
+
+model JspSkill {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  skill_id      String?  @db.ObjectId
+  jsp_id        String?  @db.ObjectId
+  Skill         Skills?  @relation(fields: [skill_id], references: [id])
+  Jsp           Jsp?     @relation(fields: [jsp_id], references: [id])
+  expected      String?  @db.ObjectId
+  ExpectedLevel Levels?  @relation(fields: [expected], references: [id])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now())
+
+  @@map("jspskill")
 }
 
 model Psp {
