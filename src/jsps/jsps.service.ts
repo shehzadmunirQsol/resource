@@ -21,35 +21,23 @@ export class JspsService {
   async findAll() {
     return await this.db.jsp.findMany({
       select: {
+        Role: true,
+        Competency: true,
         JspSkill: {
           select: {
+            ExpectedLevel: true,
             Skill: {
               select: {
-                SkillLevels: {
-                  select: {
-                    _count: true,
-                  },
-                },
+                id: true,
+                name: true,
+                description: true,
+
+                SkillLevels: true,
               },
             },
           },
         },
-        // SkillLevels: true,
       },
-      // include: {
-      //   Role: true,
-      //   Competency: true,
-      //   JspSkill: {
-      //     select: {
-      //       ExpectedLevel: true,
-      //       Skill: {
-      //         select: {
-      //           SkillLevels: true,
-      //         },
-      //       },
-      //     },
-      //   },
-      // },
     });
   }
 

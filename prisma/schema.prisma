@@ -149,7 +149,8 @@ model Levels {
   createdAt DateTime   @default(now())
   updatedAt DateTime   @default(now())
   JspSkill  JspSkill[]
-  Skills    Skills[]
+  skill_ids String[] @db.ObjectId
+  Skills   Skills[]   @relation(fields: [skill_ids], references: [id])
 
   @@map("levels")
 }
@@ -172,7 +173,7 @@ model Skills {
   name          String?    @default("")
   description   String?    @default("")
   level         String[]   @db.ObjectId
-  SkillLevels Levels?    @relation(fields: [level], references: [id])
+  SkillLevels Levels[]    @relation(fields: [level], references: [id])
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @default(now())
   JspSkill      JspSkill[]
