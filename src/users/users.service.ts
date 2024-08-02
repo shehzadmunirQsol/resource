@@ -9,7 +9,12 @@ import { LoginInputDto, ResgiterInputDto } from './dto/login-input.dto';
 import { LoginDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
 import PasswordHash from '../auth/password.hash';
-import { ModuleInputDto, VerifyOtpDto } from './dto/user-input.dto';
+import {
+  changePasswordDto,
+  ModuleInputDto,
+  SendOtpDto,
+  VerifyOtpDto,
+} from './dto/user-input.dto';
 import { ProfileDto, ProfileUpdateDto } from './dto/profile';
 import { FindAllUsersDto } from './dto/find-all';
 import { ErrorUtil } from '../common/utils/error-util';
@@ -17,59 +22,18 @@ import * as bcrypt from 'bcrypt';
 import { CustomRequest } from 'src/types/custom-request.interface';
 import { generateOTP } from 'src/utills/date.helper';
 import { EmailService } from 'src/email/email.service';
+import { StripeService } from 'src/stripe-service/stripe-service.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     private readonly db: DatabaseService,
     private readonly emailService: EmailService = new EmailService(this.db),
+    private readonly stripeService: StripeService = new StripeService(this.db),
 
     private jwtService: JwtService,
     private readonly passwordHash: PasswordHash,
   ) {}
-
-  // Login
-  async login(loginInputDto: LoginInputDto): Promise<any> {
-    const payload: any = {};
-    payload.email = loginInputDto?.user_name;
-    const user = await this.db.user.findFirst({
-      where: { ...payload },
-    });
-    // if (!user) {
-    //   const saltOrRounds: number = 10;
-    //   const hashPass = await bcrypt.hash(loginInputDto.password, saltOrRounds);
-
-    //   // create user
-    //   const userCreate = await this.db.user.create({
-    //     data: {
-    //       ...payload,
-    //       password: hashPass,
-    //       first_name: 'shehzad',
-    //     },
-    //   });
-    //   return userCreate;
-    // }
-    // Step 2: Check if the password is correct
-
-    // If password does not match, throw an error
-    const isMatch = await bcrypt.compare(
-      loginInputDto?.password,
-      user?.password,
-    );
-
-    if (!isMatch) {
-      throw new UnauthorizedException();
-    }
-    const accessToken = this.jwtService.sign({
-      user_id: user.id,
-    });
-    const updateUser = await this.db.user.update({
-      where: { id: user?.id },
-      data: { referesh_token: accessToken },
-    });
-    return updateUser;
-  }
-  // Register
   async register(registerInputDto: Prisma.UserUpdateInput): Promise<any> {
     const { password, confirm_password, ...payload }: any = {
       ...registerInputDto,
@@ -84,12 +48,22 @@ export class UsersService {
     const saltOrRounds: number = 10;
 
     const hashPass = await bcrypt.hash(password, saltOrRounds);
+    const stripe_customer_id: any =
+      await this.stripeService.createStripeCustomer({
+        name: payload?.full_name,
+        email: payload?.email,
+      });
+    console.log({ stripe_customer_id });
 
     const updateUser = await this.db.user.create({
-      data: { ...payload, password: hashPass },
+      data: {
+        ...payload,
+        password: hashPass,
+        stripe_customer_id: stripe_customer_id?.id,
+      },
     });
     if (updateUser) {
-      const otp = generateOTP(5);
+      const otp = generateOTP(4);
       await this.db.user.update({
         where: { id: updateUser?.id },
         data: { otp: otp },
@@ -106,27 +80,151 @@ export class UsersService {
         'otp_verification',
         emailData,
       );
-      const accessToken = this.jwtService.sign({
-        user_id: updateUser.id,
-      });
     }
     return updateUser;
   }
-  async verify(verifyOtpInputDto: VerifyOtpDto): Promise<any> {
-    const payload: any = {
+  // Login
+  async login(loginInputDto: LoginInputDto): Promise<any> {
+    const payload: any = {};
+    payload.email = loginInputDto?.user_name;
+    const user = await this.db.user.findFirst({
+      where: { ...payload },
+    });
+
+    // Step 2: Check if the password is correct
+
+    // If password does not match, throw an error
+    const isMatch = await bcrypt.compare(
+      loginInputDto?.password,
+      user?.password,
+    );
+
+    if (!isMatch) {
+      throw new UnauthorizedException('password is incorrect');
+    }
+    if (!user?.is_registered) {
+      const otp = generateOTP(4);
+      await this.db.user.update({
+        where: { id: user?.id },
+        data: { otp: otp },
+      });
+      const emailData = {
+        full_name: `${user.full_name}`,
+        first_name: user.first_name,
+        email: user.email,
+        number: user.number,
+        otp: otp,
+      };
+      await this.emailService.sendTemplatedEmail(
+        payload.email,
+        'otp_verification',
+        emailData,
+      );
+      return {
+        message: 'Email Sent to you for verify to proceed further',
+        user,
+        success: true,
+      };
+    }
+    const accessToken = this.jwtService.sign({
+      user_id: user.id,
+    });
+    const updateUser = await this.db.user.update({
+      where: { id: user?.id },
+      data: { referesh_token: accessToken },
+    });
+    return updateUser;
+  }
+  // Register
+  async sendOtp(verifyOtpInputDto: SendOtpDto): Promise<any> {
+    const { ...payload }: any = {
       ...verifyOtpInputDto,
     };
-
     const user = await this.db.user.findFirst({
-      where: { email: payload?.email },
+      where: { ...payload },
     });
     if (!user) throw new UnauthorizedException('User Not Found.');
+    const accessToken = this.jwtService.sign(
+      {
+        email: payload?.email,
+      },
+      {
+        expiresIn: '10m', // Token will expire in 10 minutes
+      },
+    );
+    if (user) {
+      const otp = generateOTP(4);
+      await this.db.user.update({
+        where: { id: user?.id },
+        data: { otp: otp },
+      });
+      const emailData = {
+        full_name: `${user.full_name}`,
+        first_name: user.first_name,
+        email: user.email,
+        number: user.number,
+        otp: otp,
+      };
+      await this.emailService.sendTemplatedEmail(
+        payload.email,
+        'password_change',
+        emailData,
+      );
+    }
+    return {
+      message: 'Otp Email Sent to you',
+      user,
+      success: true,
+      accessToken,
+    };
+  }
+  async changePassword(changePasswordDto: changePasswordDto): Promise<any> {
+    const { ...payload } = {
+      ...changePasswordDto,
+    };
+
+    const accessToken = this.jwtService.verify(payload?.accessToken);
+    console.log({ accessToken });
+    // find user
+    const user = await this.db.user.findFirst({
+      where: { email: accessToken?.email },
+    });
+    if (!user) throw new NotFoundException('user not found');
+    if (payload?.password !== payload?.confirm_password) {
+      throw new NotFoundException('password doest not match');
+    }
     const saltOrRounds: number = 10;
+
+    const hashPass = await bcrypt.hash(payload?.password, saltOrRounds);
+
+    const userUpdate = await this.db.user.update({
+      where: { email: user?.email },
+      data: {
+        password: hashPass,
+      },
+    });
+    return {
+      message: 'Password change successfully',
+      user: userUpdate,
+      success: true,
+      accessToken,
+    };
+  }
+
+  async verify(verifyOtpInputDto: VerifyOtpDto): Promise<any> {
+    const { type, ...payload }: any = {
+      ...verifyOtpInputDto,
+    };
+    console.log({ verifyOtpInputDto });
+    const user = await this.db.user.findFirst({
+      where: { ...payload },
+    });
+    if (!user) throw new UnauthorizedException('User Not Found.');
 
     if (user) {
       await this.db.user.update({
         where: { id: user?.id },
-        data: { is_registered: true },
+        data: { is_registered: true, otp: '' },
       });
     }
     return user;

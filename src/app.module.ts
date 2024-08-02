@@ -14,6 +14,9 @@ import { SettingModule } from './setting/setting.module';
 import { PspsModule } from './psps/psps.module';
 import { LevelsModule } from './levels/levels.module';
 import { JspsModule } from './jsps/jsps.module';
+import { StripeService } from './stripe-service/stripe-service.service';
+import { StripeServiceModule } from './stripe-service/stripe-service.module';
+import { HomeModule } from './home/home.module';
 
 @Module({
   imports: [
@@ -43,6 +46,7 @@ import { JspsModule } from './jsps/jsps.module';
     PspsModule,
     LevelsModule,
     JspsModule,
+    HomeModule,
   ],
   controllers: [AppController],
   providers: [

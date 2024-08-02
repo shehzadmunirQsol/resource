@@ -5,6 +5,7 @@ import {
   IsNotEmpty,
   IsNumber,
   IsString,
+  MinLength,
 } from 'class-validator';
 
 export class ModuleInputDto {
@@ -28,10 +29,33 @@ export class ModuleInputDto {
 export class VerifyOtpDto {
   @IsString()
   @IsNotEmpty()
-  otp: number;
+  otp: string;
+  @IsString()
+  @IsNotEmpty()
+  type: string;
 
   @IsString()
   @IsNotEmpty()
   @IsEmail()
   email: string;
+}
+export class SendOtpDto {
+  @IsString()
+  @IsNotEmpty()
+  @IsEmail()
+  email: string;
+}
+export class changePasswordDto {
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(6)
+  password: string;
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(6)
+  confirm_password: string;
+
+  @IsString()
+  @IsNotEmpty()
+  accessToken: string;
 }
