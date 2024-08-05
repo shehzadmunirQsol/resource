@@ -41,7 +41,7 @@ export class UsersController {
   }
   @Post('register')
   @HttpCode(200)
-  register(@Body() registerDto: Prisma.UserUpdateInput): Promise<LoginDto> {
+  register(@Body() registerDto: ResgiterInputDto): Promise<LoginDto> {
     this.logger.log(`Request for registration ${JSON.stringify(registerDto)} `);
     return this.usersService.register(registerDto);
   }

@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import {
   IsBoolean,
   IsEmail,
@@ -30,9 +31,22 @@ export class ResgiterInputDto {
   @IsString()
   @IsNotEmpty()
   role_id: string;
+  @IsString()
+  organization?: string;
+  @IsString()
+  plan_id?: string;
+  @IsString()
   @IsNotEmpty()
-  organization: string;
-
+  industry_id?: string;
+  @IsString()
+  @IsNotEmpty()
+  nic: string;
+  @IsString()
+  @IsNotEmpty()
+  country: string;
+  @IsString()
+  @IsNotEmpty()
+  city: string;
   @IsNotEmpty()
   gender: string;
 

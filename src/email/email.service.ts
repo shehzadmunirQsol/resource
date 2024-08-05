@@ -6,7 +6,6 @@ import * as nodemailer from 'nodemailer';
 export class EmailService {
   constructor(private readonly db: DatabaseService) {}
   async getEmailTemplate(payload: string) {
-    console.log({ payload });
     const options: any = {
       where: {
         email_key: payload,
@@ -38,7 +37,6 @@ export class EmailService {
           rejectUnauthorized: false, // Allow self-signed certificates
         },
       });
-      console.log({ host: process.env.MAIL_HOST });
 
       const mailOptions = {
         from: `${process.env.MAIL_USERNAME}`,
@@ -62,14 +60,12 @@ export class EmailService {
   ): Promise<void> {
     const emailTemplate = await this.getEmailTemplate(emailKey);
 
-    console.log({ emailKey, emailTemplate });
     if (!emailTemplate) {
       throw new Error('Email template not found');
     }
 
     const subject = replacePlaceholders(emailTemplate.email.subject, data);
     const body = replacePlaceholders(emailTemplate.email.body, data);
-    console.log({ body, data });
     await this.sendEmail(to, subject, body, bcc);
   }
 }

@@ -34,8 +34,8 @@ export class UsersService {
     private jwtService: JwtService,
     private readonly passwordHash: PasswordHash,
   ) {}
-  async register(registerInputDto: Prisma.UserUpdateInput): Promise<any> {
-    const { password, confirm_password, ...payload }: any = {
+  async register(registerInputDto: ResgiterInputDto): Promise<any> {
+    const { password, confirm_password, plan_id, ...payload }: any = {
       ...registerInputDto,
     };
     if (password !== confirm_password) {
@@ -53,7 +53,6 @@ export class UsersService {
         name: payload?.full_name,
         email: payload?.email,
       });
-    console.log({ stripe_customer_id });
 
     const updateUser = await this.db.user.create({
       data: {
@@ -62,6 +61,33 @@ export class UsersService {
         stripe_customer_id: stripe_customer_id?.id,
       },
     });
+    const findPlan = await this.db.plans.findFirst({
+      where: {
+        id: plan_id,
+        type: 'self_assessment',
+      },
+      include: {
+        PlansFeatures: {
+          select: {
+            id: true,
+            name: true,
+            value: true,
+          },
+        },
+      },
+    });
+    if (findPlan) {
+      await this.db.userPlans.create({
+        data: {
+          user_id: updateUser?.id,
+          plan_id: findPlan?.id ?? '',
+          subscription: findPlan?.name,
+          status: 'hold',
+          plan_features: findPlan?.PlansFeatures,
+        },
+      });
+    }
+    console.log({ findPlan });
     if (updateUser) {
       const otp = generateOTP(4);
       await this.db.user.update({
@@ -264,7 +290,34 @@ export class UsersService {
         data: { is_registered: true, otp: '' },
       });
     }
-    return user;
+    const userPlan = await this.db.userPlans.findFirst({
+      where: {
+        user_id: user?.id,
+        status: 'hold',
+      },
+    });
+    if (userPlan && type === 'registration') {
+      const accessToken = this.jwtService.sign(
+        {
+          id: user?.id,
+          userPlan,
+        },
+        {
+          expiresIn: '10m', // Token will expire in 10 minutes
+        },
+      );
+      return {
+        message: 'Your account is hold please pay and  to proceed further',
+        user,
+        success: true,
+        stirpeToken: accessToken,
+      };
+    }
+    return {
+      message: 'your otp is verified login to your account!',
+      user,
+      success: true,
+    };
   }
   async roles() {
     const roles = await this.db.role.findMany({

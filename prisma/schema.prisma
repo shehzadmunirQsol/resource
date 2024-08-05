@@ -34,7 +34,8 @@ model PlansFeature {
   priority  Int?
   createdAt DateTime? @default(now())
   updatedAt DateTime? @updatedAt
-  Plans     Plans[]
+  plan_ids String[]      @db.ObjectId
+  Plans     Plans[] @relation(fields: [plan_ids], references: [id])
 
   @@map("plans_feature")
 }
@@ -54,7 +55,7 @@ model Plans {
   updatedAt        DateTime?     @updatedAt
   features         PlanFeature[]
   plan_feature     String[]      @db.ObjectId
-  PlansFeatures    PlansFeature? @relation(fields: [plan_feature], references: [id])
+  PlansFeatures    PlansFeature[] @relation(fields: [plan_feature], references: [id])
   UserPlans        UserPlans[]
 
   @@map("plans")
@@ -65,10 +66,12 @@ model UserPlans {
   user_id               String?               @db.ObjectId
   plan_id               String?               @db.ObjectId
   subscription          String
+  stripe_id          String?
   charges               Float?
   expiry_date           DateTime?             @updatedAt
   status                StorePlanStatusEnums? @default(hold)
   failed_transaction    TransactionFailed?
+  plan_features         UserPlanFeature[]
   subscription_canceled SubscriptionCanceled?
   is_deleted            Boolean               @default(false)
   createdAt             DateTime?             @default(now())
@@ -307,6 +310,11 @@ model EmailTemplate {
 type TransactionFailed {
   previous_plan_id String @db.ObjectId
   reason           String @default("Canceled by user")
+}
+type UserPlanFeature {
+  id String @db.ObjectId
+  name           String 
+  value          Int 
 }
 
 type JSPExpectedLevel {

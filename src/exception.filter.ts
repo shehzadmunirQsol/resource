@@ -34,7 +34,7 @@ export class ExceptionsFilter extends BaseExceptionFilter {
       path: request.url,
       response: '',
     };
-
+    console.log({ message: exception?.message });
     if (exception instanceof HttpException) {
       responseObj.statusCode = exception.getStatus();
       responseObj.response = exception.getResponse();
@@ -42,8 +42,10 @@ export class ExceptionsFilter extends BaseExceptionFilter {
       responseObj.statusCode = 422;
       responseObj.response = exception.message.replaceAll(/\n/g, '');
     } else {
+      const error: any = exception;
       responseObj.statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
-      responseObj.response = 'Internal Server Error';
+      responseObj.response =
+        (error?.message as string) ?? 'Internal Server Error';
     }
 
     response.status(responseObj.statusCode).json(responseObj);
