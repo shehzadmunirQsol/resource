@@ -8,4 +8,7 @@ export class LoginDto {
   password: string;
   role: string;
   access_token: string;
+  Role: any;
+  Organization: any;
+  Industry: any;
 }

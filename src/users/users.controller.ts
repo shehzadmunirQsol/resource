@@ -70,6 +70,11 @@ export class UsersController {
     );
     return this.usersService.changePassword(changePasswordDto);
   }
+  @Get('roles')
+  roles(@Req() request: CustomRequest) {
+    this.logger.log(`Request for logout`);
+    return this.usersService.roles();
+  }
   @Get('profile')
   @UseGuards(JwtAuthGuard)
   profile(@Req() request: CustomRequest) {
@@ -85,7 +90,7 @@ export class UsersController {
 
     return this.usersService.logout(request);
   }
-
+  // get by id
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
   update(

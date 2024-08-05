@@ -17,8 +17,8 @@ model AdminSettings {
   public_key String?
   secret_key String?
   is_deleted Boolean  @default(false)
-  created_at DateTime @default(now())
-  updated_at DateTime @default(now()) @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 
   @@map("admin_settings")
 }
@@ -28,6 +28,7 @@ model PlansFeature {
   name   String?
   desc   String?
   status String?
+  value Int?
 
   is_active Boolean   @default(false)
   priority  Int?
@@ -103,7 +104,9 @@ model Resources {
   id         String  @id @default(auto()) @map("_id") @db.ObjectId
   name       String
   code       String
+  path       String?
   parent     Int?
+  icon       String?
   is_deleted Boolean @default(false)
 
   createdAt      DateTime         @default(now())
@@ -273,8 +276,8 @@ model User {
   BillingHistory     BillingHistory[]
   UserPlans          UserPlans[]
   Organization       Organization?    @relation(fields: [organization], references: [id])
-  Industry           Industry?        @relation(fields: [industryId], references: [id])
-  industryId         String?          @db.ObjectId
+  Industry           Industry?        @relation(fields: [industry_id], references: [id])
+  industry_id         String?          @db.ObjectId
 
   @@map("user")
 }

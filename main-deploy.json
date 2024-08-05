@@ -1,0 +1,13 @@
+{
+  "Parameters": {
+    "commands": [
+      "#!/bin/bash",
+      "runuser -l ubuntu -c 'cd /home/ubuntu/resource-hub && git stash'",
+      "runuser -l ubuntu -c 'cd /home/ubuntu/resource-hub && git pull origin main'",
+      "runuser -l ubuntu -c 'cd /home/ubuntu/resource-hub && pnpm i'",
+      "runuser -l ubuntu -c 'cd /home/ubuntu/resource-hub && rm -r ./dist/'",
+      "runuser -l ubuntu -c 'cd /home/ubuntu/resource-hub && aws s3 sync s3://media.dirtx.io/tmp/dist ./dist'",
+      "runuser -l ubuntu -c 'cd /home/ubuntu/resource-hub &&  pm2 restart nestjs-backend'"
+    ]
+  }
+}

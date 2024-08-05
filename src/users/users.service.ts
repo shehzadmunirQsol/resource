@@ -89,8 +89,27 @@ export class UsersService {
     payload.email = loginInputDto?.user_name;
     const user = await this.db.user.findFirst({
       where: { ...payload },
-    });
 
+      include: {
+        Organization: true,
+        Industry: true,
+        Role: {
+          select: {
+            id: true,
+            name: true,
+            RolePermsions: {
+              where: {
+                access: 'W',
+              },
+              select: {
+                Resources: true,
+              },
+            },
+          },
+        },
+      },
+    });
+    console.log({ user });
     // Step 2: Check if the password is correct
 
     // If password does not match, throw an error
@@ -132,6 +151,24 @@ export class UsersService {
     const updateUser = await this.db.user.update({
       where: { id: user?.id },
       data: { referesh_token: accessToken },
+      include: {
+        Organization: true,
+        Industry: true,
+        Role: {
+          select: {
+            id: true,
+            name: true,
+            RolePermsions: {
+              where: {
+                access: 'W',
+              },
+              select: {
+                Resources: true,
+              },
+            },
+          },
+        },
+      },
     });
     return updateUser;
   }
@@ -229,15 +266,65 @@ export class UsersService {
     }
     return user;
   }
-
-  async findAuhtoizeduser(user_id: string) {
-    return await this.db.user.findFirst({ where: { id: user_id } });
+  async roles() {
+    const roles = await this.db.role.findMany({
+      where: {
+        name: {
+          not: 'admin',
+          mode: 'insensitive',
+        },
+      },
+    });
+    const industry = await this.db.industry.findMany();
+    const organization = await this.db.organization.findMany();
+    return { industry, organization, roles };
   }
+  async findAuhtoizeduser(user_id: string) {
+    return await this.db.user.findFirst({
+      where: { id: user_id },
+      include: {
+        Organization: true,
+        Industry: true,
+        Role: {
+          select: {
+            id: true,
+            name: true,
+            RolePermsions: {
+              where: {
+                access: 'W',
+              },
+              select: {
+                Resources: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
   async profile(request: CustomRequest) {
     const user_id = request?.user?.id;
     return await this.db.user.findFirst({
       where: { id: user_id },
-      include: { Organization: true, Role: true },
+      include: {
+        Organization: true,
+        Industry: true,
+        Role: {
+          select: {
+            id: true,
+            name: true,
+            RolePermsions: {
+              where: {
+                access: 'W',
+              },
+              select: {
+                Resources: true,
+              },
+            },
+          },
+        },
+      },
     });
   }
 
