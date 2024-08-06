@@ -166,9 +166,35 @@ export class UsersService {
         emailData,
       );
       return {
-        message: 'Email Sent to you for verify to proceed further',
+        message: 'Email Sent to you for otp verification to proceed further',
+        type: 'otp_verification',
         user,
         success: true,
+      };
+    }
+    const userPlan = await this.db.userPlans.findFirst({
+      where: {
+        user_id: user?.id,
+        status: 'hold',
+      },
+    });
+    if (userPlan) {
+      const accessToken = this.jwtService.sign(
+        {
+          id: user?.id,
+          userPlan,
+        },
+        {
+          expiresIn: '10m', // Token will expire in 10 minutes
+        },
+      );
+      return {
+        message:
+          'Your account payment status is on hold please pay and  to proceed further',
+        success: true,
+        type: 'payment',
+
+        stirpeToken: accessToken,
       };
     }
     const accessToken = this.jwtService.sign({

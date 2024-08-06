@@ -18,6 +18,7 @@ import { StripeService } from './stripe-service/stripe-service.service';
 import { StripeServiceModule } from './stripe-service/stripe-service.module';
 import { HomeModule } from './home/home.module';
 import { PaymentModule } from './payment/payment.module';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { PaymentModule } from './payment/payment.module';
     JspsModule,
     HomeModule,
     PaymentModule,
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [

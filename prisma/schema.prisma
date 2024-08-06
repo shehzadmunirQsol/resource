@@ -17,8 +17,8 @@ model AdminSettings {
   public_key String?
   secret_key String?
   is_deleted Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
 
   @@map("admin_settings")
 }
@@ -28,20 +28,20 @@ model PlansFeature {
   name   String?
   desc   String?
   status String?
-  value Int?
+  value  Int?
 
   is_active Boolean   @default(false)
   priority  Int?
   createdAt DateTime? @default(now())
   updatedAt DateTime? @updatedAt
-  plan_ids String[]      @db.ObjectId
-  Plans     Plans[] @relation(fields: [plan_ids], references: [id])
+  plan_ids  String[]  @db.ObjectId
+  Plans     Plans[]   @relation(fields: [plan_ids], references: [id])
 
   @@map("plans_feature")
 }
 
 model Plans {
-  id               String        @id @default(auto()) @map("_id") @db.ObjectId
+  id               String         @id @default(auto()) @map("_id") @db.ObjectId
   name             String
   type             String
   plan_description String
@@ -50,11 +50,11 @@ model Plans {
   plan_charges     Float?
   plan_tax         Float?
   status           String?
-  is_deleted       Boolean       @default(false)
-  createdAt        DateTime?     @default(now())
-  updatedAt        DateTime?     @updatedAt
+  is_deleted       Boolean        @default(false)
+  createdAt        DateTime?      @default(now())
+  updatedAt        DateTime?      @updatedAt
   features         PlanFeature[]
-  plan_feature     String[]      @db.ObjectId
+  plan_feature     String[]       @db.ObjectId
   PlansFeatures    PlansFeature[] @relation(fields: [plan_feature], references: [id])
   UserPlans        UserPlans[]
 
@@ -66,7 +66,7 @@ model UserPlans {
   user_id               String?               @db.ObjectId
   plan_id               String?               @db.ObjectId
   subscription          String
-  stripe_id          String?
+  stripe_id             String?
   charges               Float?
   expiry_date           DateTime?             @updatedAt
   status                StorePlanStatusEnums? @default(hold)
@@ -280,9 +280,25 @@ model User {
   UserPlans          UserPlans[]
   Organization       Organization?    @relation(fields: [organization], references: [id])
   Industry           Industry?        @relation(fields: [industry_id], references: [id])
-  industry_id         String?          @db.ObjectId
+  industry_id        String?          @db.ObjectId
+  Notification       Notification[]
 
   @@map("user")
+}
+
+model Notification {
+  id      String  @id @default(auto()) @map("_id") @db.ObjectId
+  title   String
+  type    String
+  message String
+  path    String?
+  is_seen        Boolean          @default(false)
+  is_deleted     Boolean          @default(false)
+
+  user_id String  @db.ObjectId
+  user    User?   @relation(fields: [user_id], references: [id])
+
+  @@map("notification")
 }
 
 model Setting {
@@ -311,10 +327,11 @@ type TransactionFailed {
   previous_plan_id String @db.ObjectId
   reason           String @default("Canceled by user")
 }
+
 type UserPlanFeature {
-  id String @db.ObjectId
-  name           String 
-  value          Int 
+  id    String @db.ObjectId
+  name  String
+  value Int
 }
 
 type JSPExpectedLevel {
