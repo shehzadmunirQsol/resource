@@ -44,6 +44,7 @@ export class ExceptionsFilter extends BaseExceptionFilter {
     } else {
       const error: any = exception;
       responseObj.statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
+      responseObj.statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
       responseObj.response =
         (error?.message as string) ?? 'Internal Server Error';
     }

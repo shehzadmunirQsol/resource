@@ -23,6 +23,7 @@ import { CustomRequest } from 'src/types/custom-request.interface';
 import { generateOTP } from 'src/utills/date.helper';
 import { EmailService } from 'src/email/email.service';
 import { StripeService } from 'src/stripe-service/stripe-service.service';
+import { error } from 'console';
 
 @Injectable()
 export class UsersService {
@@ -137,7 +138,7 @@ export class UsersService {
     });
     console.log({ user });
     // Step 2: Check if the password is correct
-
+    if (!user) throw new NotFoundException({ error: 'User not founds' });
     // If password does not match, throw an error
     const isMatch = await bcrypt.compare(
       loginInputDto?.password,
@@ -145,7 +146,7 @@ export class UsersService {
     );
 
     if (!isMatch) {
-      throw new UnauthorizedException('password is incorrect');
+      throw new UnauthorizedException({ error: 'password is incorrect' });
     }
     if (!user?.is_registered) {
       const otp = generateOTP(4);
