@@ -75,11 +75,11 @@ export class UsersController {
   @Get('roles')
   roles(
     @Query(new ValidationPipe({ transform: true }))
-    { first, rows, search }: FindAllDto,
+    { first, rows, type, search }: FindAllDto,
     @Req() request: CustomRequest,
   ) {
     this.logger.log(`Request for logout`);
-    return this.usersService.roles();
+    return this.usersService.roles({ first, rows, type, search });
   }
   @Get('profile')
   @UseGuards(JwtAuthGuard)
