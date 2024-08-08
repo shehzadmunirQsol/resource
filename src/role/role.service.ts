@@ -10,7 +10,7 @@ export class RoleService {
     return 'This action adds a new role';
   }
 
-  async findAll() {
+  async findAll(payload) {
     const totalRolesPromise = this.db.role.count({
       where: {
         is_deleted: false,

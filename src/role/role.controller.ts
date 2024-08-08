@@ -7,11 +7,14 @@ import {
   Param,
   Delete,
   UseGuards,
+  Query,
+  ValidationPipe,
 } from '@nestjs/common';
 import { RoleService } from './role.service';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { FindAllDto } from './dto/role.dto';
 
 @Controller('role')
 export class RoleController {
@@ -23,8 +26,11 @@ export class RoleController {
   }
 
   @Get()
-  findAllRole() {
-    return this.roleService.findAll();
+  findAllRole(
+    @Query(new ValidationPipe({ transform: true }))
+    { first, rows, search }: FindAllDto,
+  ) {
+    return this.roleService.findAll({ first, rows, search });
   }
   @Get('resources')
   @UseGuards(JwtAuthGuard)

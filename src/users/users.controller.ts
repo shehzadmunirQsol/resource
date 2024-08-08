@@ -11,6 +11,7 @@ import {
   Query,
   ParseIntPipe,
   HttpCode,
+  ValidationPipe,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { Prisma } from '@prisma/client';
@@ -27,6 +28,7 @@ import {
 import { ProfileDto, ProfileUpdateDto } from './dto/profile';
 import { FindAllUsersDto } from './dto/find-all';
 import { CustomRequest } from 'src/types/custom-request.interface';
+import { FindAllDto } from './dto/user.dto';
 
 @Controller('users')
 export class UsersController {
@@ -71,7 +73,11 @@ export class UsersController {
     return this.usersService.changePassword(changePasswordDto);
   }
   @Get('roles')
-  roles(@Req() request: CustomRequest) {
+  roles(
+    @Query(new ValidationPipe({ transform: true }))
+    { first, rows, search }: FindAllDto,
+    @Req() request: CustomRequest,
+  ) {
     this.logger.log(`Request for logout`);
     return this.usersService.roles();
   }

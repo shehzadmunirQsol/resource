@@ -346,13 +346,14 @@ export class UsersService {
       success: true,
     };
   }
-  async roles() {
+  async roles(payload) {
     const roles = await this.db.role.findMany({
       where: {
         name: {
           not: 'admin',
           mode: 'insensitive',
         },
+        type: payload?.type ? payload?.type : 'self',
       },
     });
     const industry = await this.db.industry.findMany();
