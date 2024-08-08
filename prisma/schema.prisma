@@ -162,6 +162,7 @@ model Role {
   id         String  @id @default(auto()) @map("_id") @db.ObjectId
   name       String
   is_deleted Boolean @default(false)
+  type       String?  @default("self")
 
   User          User[]           @relation("rolename")
   RolePermsions RolePermission[]
