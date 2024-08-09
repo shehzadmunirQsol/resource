@@ -3,6 +3,8 @@ import { RoleService } from './role.service';
 import { PrismaClient } from '@prisma/client';
 import { NotFoundException } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
+import { RoleController } from './role.controller';
+import { DatabaseModule } from 'src/database/database.module';
 
 describe('RoleService', () => {
   let service: RoleService;
@@ -11,6 +13,9 @@ describe('RoleService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      imports: [DatabaseModule],
+
+      controllers: [RoleController],
       providers: [
         RoleService,
         DatabaseService,

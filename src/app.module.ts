@@ -20,6 +20,7 @@ import { HomeModule } from './home/home.module';
 import { PaymentModule } from './payment/payment.module';
 import { NotificationModule } from './notification/notification.module';
 import { RoleModule } from './role/role.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ import { RoleModule } from './role/role.module';
     PaymentModule,
     NotificationModule,
     RoleModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [
