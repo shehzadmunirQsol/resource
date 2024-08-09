@@ -32,24 +32,33 @@ export class RoleController {
   ) {
     return this.roleService.findAll({ first, rows, search });
   }
-  @Get('resources')
+  @Get('resources/:id')
   @UseGuards(JwtAuthGuard)
-  findAllResource() {
-    return this.roleService.findAllResource();
+  findAllResource(
+    @Param('id') id: string,
+    @Query(new ValidationPipe({ transform: true }))
+    { first, rows, search }: FindAllDto,
+  ) {
+    return this.roleService.findAllResource({ first, rows, search, id });
+  }
+  @Post('permission')
+  @UseGuards(JwtAuthGuard)
+  uploadPermission(@Body() createRoleDto: CreateRoleDto[]) {
+    return this.roleService.uploadPermission(createRoleDto);
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.roleService.findOne(+id);
+    return this.roleService.findOne(id);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateRoleDto: UpdateRoleDto) {
-    return this.roleService.update(+id, updateRoleDto);
+    return this.roleService.update(id, updateRoleDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.roleService.remove(+id);
+    return this.roleService.remove(id);
   }
 }

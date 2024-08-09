@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { DatabaseService } from 'src/database/database.service';
+import { NotFoundError } from 'rxjs';
 
 @Injectable()
 export class RoleService {
@@ -35,30 +36,101 @@ export class RoleService {
     const [count, roles] = await Promise.all([totalRolesPromise, rolesPromise]);
     return { count, roles };
   }
-  async findAllResource() {
-    const totalresourcesPromise = this.db.resources.count({});
-    const resourcesPromise = this.db.resources.findMany({
+  async findAllResource(payload) {
+    // const totalresourcesPromise = this.db.resources.count({});
+    // const resourcesPromise = this.db.resources.findMany({
+    //   orderBy: { createdAt: 'asc' },
+    // });
+
+    // const [count, resources] = await Promise.all([
+    //   totalresourcesPromise,
+    //   resourcesPromise,
+    // ]);
+    const totalCategoryPromise = this.db.resources.count({});
+
+    const resourcePromise = this.db.resources.findMany({
       orderBy: { createdAt: 'asc' },
-      skip: 0,
-      take: 10,
     });
 
-    const [count, resources] = await Promise.all([
-      totalresourcesPromise,
-      resourcesPromise,
+    const permisionPromise = this.db.rolePermission.findMany({
+      orderBy: { createdAt: 'asc' },
+
+      where: {
+        role_id: payload?.id ?? '0',
+      },
+      include: {
+        Resources: true,
+      },
+    });
+    const [totalCategory, resources, access] = await Promise.all([
+      totalCategoryPromise,
+      resourcePromise,
+      permisionPromise,
     ]);
-    return { count, resources };
+    const frequencyCounter = resources.reduce((accu: any, curr: any) => {
+      const find_access = access?.find(
+        (item) => item?.resource_id === curr?.id,
+      );
+      console.log({ find_access });
+      accu[curr.id] = find_access ? find_access?.access : 'N';
+      return accu;
+    }, {});
+
+    return {
+      message: 'categories found',
+      count: totalCategory,
+      data: resources,
+      switch: frequencyCounter,
+      access,
+    };
+  }
+  async uploadPermission(payload) {
+    console.log({ payload });
+    if (payload) {
+      await payload?.map(async (item, index) => {
+        console.log(item, index);
+        if (item?.resource_id === '' || item?.role_id === '') {
+          throw new NotFoundException('Not found');
+        }
+        const findData = await this.db.rolePermission.findFirst({
+          where: {
+            resource_id: item?.resource_id && item?.resource_id,
+            role_id: item?.role_id && item?.role_id,
+          },
+        });
+        if (findData) {
+          await this.db.rolePermission.update({
+            where: {
+              id: findData?.id,
+            },
+            data: {
+              access: item?.access,
+            },
+          });
+        } else {
+          await this.db.rolePermission.create({
+            data: {
+              ...item,
+            },
+          });
+        }
+      });
+    }
+    return {
+      message: 'Uploaded Permissions',
+      payload,
+    };
   }
 
-  findOne(id: number) {
+  findOne(id: string) {
     return `This action returns a #${id} role`;
   }
 
-  update(id: number, updateRoleDto: UpdateRoleDto) {
+  update(id: string, updateRoleDto: UpdateRoleDto) {
     return `This action updates a #${id} role`;
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return `This action removes a #${id} role`;
   }
 }

@@ -13,10 +13,12 @@ export class ModuleDto {
   updated_on: Date;
 }
 export class FindAllDto {
+  @IsOptional()
   @IsString()
   @IsInt()
   @Type(() => Number)
   first: number;
+  @IsOptional()
   @IsString()
   @IsInt()
   @Type(() => Number)
