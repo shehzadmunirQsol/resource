@@ -162,7 +162,7 @@ model Role {
   id         String  @id @default(auto()) @map("_id") @db.ObjectId
   name       String
   is_deleted Boolean @default(false)
-  type       String?  @default("self")
+  type       String? @default("self")
 
   User          User[]           @relation("rolename")
   RolePermsions RolePermission[]
@@ -190,13 +190,14 @@ model Levels {
 }
 
 model Competencies {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  id          String     @id @default(auto()) @map("_id") @db.ObjectId
   name        String
   description String
   value       Int?
   Jsp         Jsp[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @default(now())
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @default(now())
+  JspSkill    JspSkill[]
 
   @@map("competencies")
 }
@@ -221,7 +222,7 @@ model Jsp {
   description   String?       @default("")
   role_id       String        @db.ObjectId
   Role          Role?         @relation(fields: [role_id], references: [id])
-  competency_id String?       @db.ObjectId
+  competency_id String      @db.ObjectId
   Competency    Competencies? @relation(fields: [competency_id], references: [id])
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @default(now())
@@ -231,15 +232,17 @@ model Jsp {
 }
 
 model JspSkill {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  skill_id      String?  @db.ObjectId
-  jsp_id        String?  @db.ObjectId
-  Skill         Skills?  @relation(fields: [skill_id], references: [id])
-  Jsp           Jsp?     @relation(fields: [jsp_id], references: [id])
-  expected      String?  @db.ObjectId
-  ExpectedLevel Levels?  @relation(fields: [expected], references: [id])
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @default(now())
+  id            String        @id @default(auto()) @map("_id") @db.ObjectId
+  skill_id      String?       @db.ObjectId
+  jsp_id        String?       @db.ObjectId
+  competency_id String      @db.ObjectId
+  Skill         Skills?       @relation(fields: [skill_id], references: [id])
+  Jsp           Jsp?          @relation(fields: [jsp_id], references: [id])
+  expected      String?       @db.ObjectId
+  ExpectedLevel Levels?       @relation(fields: [expected], references: [id])
+  Competency    Competencies? @relation(fields: [competency_id], references: [id])
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @default(now())
 
   @@map("jspskill")
 }
@@ -288,16 +291,16 @@ model User {
 }
 
 model Notification {
-  id      String  @id @default(auto()) @map("_id") @db.ObjectId
-  title   String
-  type    String
-  message String
-  path    String?
-  is_seen        Boolean          @default(false)
-  is_deleted     Boolean          @default(false)
+  id         String  @id @default(auto()) @map("_id") @db.ObjectId
+  title      String
+  type       String
+  message    String
+  path       String?
+  is_seen    Boolean @default(false)
+  is_deleted Boolean @default(false)
 
-  user_id String  @db.ObjectId
-  user    User?   @relation(fields: [user_id], references: [id])
+  user_id String @db.ObjectId
+  user    User?  @relation(fields: [user_id], references: [id])
 
   @@map("notification")
 }

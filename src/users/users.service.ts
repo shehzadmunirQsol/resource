@@ -169,7 +169,6 @@ export class UsersService {
       return {
         message: 'Email Sent to you for otp verification to proceed further',
         type: 'otp_verification',
-        user,
         success: true,
       };
     }
@@ -305,11 +304,14 @@ export class UsersService {
     const { type, ...payload }: any = {
       ...verifyOtpInputDto,
     };
-    console.log({ verifyOtpInputDto });
+    console.log({ payload });
     const user = await this.db.user.findFirst({
-      where: { ...payload },
+      where: { email: payload?.email },
     });
-    if (!user) throw new UnauthorizedException('User Not Found.');
+    if (!user) throw new UnauthorizedException({ error: 'user not found!' });
+    console.log({ user: user?.otp, payload: payload?.otp });
+    if (user?.otp !== payload?.otp)
+      throw new UnauthorizedException({ error: 'otp does not match!' });
 
     if (user) {
       await this.db.user.update({
