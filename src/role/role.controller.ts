@@ -16,7 +16,7 @@ import { UpdateRoleDto } from './dto/update-role.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { FindAllDto } from './dto/role.dto';
 
-@Controller('role')
+@Controller('admin/role')
 export class RoleController {
   constructor(private readonly roleService: RoleService) {}
 

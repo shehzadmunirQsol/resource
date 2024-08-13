@@ -21,6 +21,7 @@ import { PaymentModule } from './payment/payment.module';
 import { NotificationModule } from './notification/notification.module';
 import { RoleModule } from './role/role.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -55,6 +56,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
     NotificationModule,
     RoleModule,
     DashboardModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [
