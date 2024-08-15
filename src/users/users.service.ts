@@ -222,7 +222,12 @@ export class UsersService {
         },
       },
     });
-    return updateUser;
+    return {
+      user: updateUser,
+      message: 'Registered Successfully',
+      success: true,
+      type: 'register',
+    };
   }
   // Register
   async sendOtp(verifyOtpInputDto: SendOtpDto): Promise<any> {

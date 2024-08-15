@@ -13,7 +13,21 @@ export class JspsService {
     return await this.db.jsp.create({
       data: {
         ...payload,
-        JspSkill: { createMany: { data: expected } },
+        // JspCompetencies: { createMany: { data: expected } },
+        JspCompetencies: {
+          create: expected.map((competency) => ({
+            competency_id: competency.competency_id,
+            skill_id: competency?.skill_id,
+            JspSkill: {
+              create: competency.JspSkill.map((skill) => ({
+                skill_id: skill.skill_id,
+                expected: skill.expected,
+                competency_id: competency.competency_id,
+              })),
+            },
+          })),
+        },
+        // JspSkill: { createMany: { data: expected } },
       },
     });
   }
@@ -22,17 +36,21 @@ export class JspsService {
     return await this.db.jsp.findMany({
       select: {
         Role: true,
-        Competency: true,
-        JspSkill: {
+        JspCompetencies: {
           select: {
-            ExpectedLevel: true,
-            Skill: {
+            Competency: true,
+            JspSkill: {
               select: {
-                id: true,
-                name: true,
-                description: true,
+                ExpectedLevel: true,
+                Skill: {
+                  select: {
+                    id: true,
+                    name: true,
+                    description: true,
 
-                SkillLevels: true,
+                    SkillLevels: true,
+                  },
+                },
               },
             },
           },
