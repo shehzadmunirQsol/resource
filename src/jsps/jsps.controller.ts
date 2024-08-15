@@ -7,11 +7,13 @@ import {
   Param,
   Delete,
   UseGuards,
+  Req,
 } from '@nestjs/common';
 import { JspsService } from './jsps.service';
 import { CreateJspDto } from './dto/create-jsp.dto';
 import { UpdateJspDto } from './dto/update-jsp.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { CustomRequest } from 'src/types/custom-request.interface';
 
 @Controller('jsps')
 export class JspsController {
@@ -25,8 +27,8 @@ export class JspsController {
 
   @Get()
   @UseGuards(JwtAuthGuard)
-  findAll() {
-    return this.jspsService.findAll();
+  findAll(@Req() request: CustomRequest) {
+    return this.jspsService.findAll(request);
   }
 
   @Get(':id')

@@ -32,8 +32,9 @@ export class JspsService {
     });
   }
 
-  async findAll() {
-    return await this.db.jsp.findMany({
+  async findAll(request) {
+    const data = await this.db.jsp.findFirst({
+      where: { role_id: request?.user?.role_id },
       select: {
         Role: true,
         JspCompetencies: {
@@ -57,6 +58,7 @@ export class JspsService {
         },
       },
     });
+    return { data, success: true, message: 'Jsp found' };
   }
 
   findOne(id: number) {
