@@ -341,16 +341,35 @@ export class UsersService {
         },
       );
       return {
-        message: 'Your account is hold please pay and  to proceed further',
+        message: 'Your account is hold please pay and to proceed further',
         user,
         success: true,
-        stirpeToken: accessToken,
       };
     }
+    if (type !== 'registration') {
+      const accessToken = this.jwtService.sign(
+        {
+          id: user?.id,
+          userPlan,
+        },
+        {
+          expiresIn: '10m', // Token will expire in 10 minutes
+        },
+      );
+      return {
+        message: 'your otp is verified you can proceed further',
+        user,
+        success: true,
+        token: accessToken,
+        type: 'password-change',
+      };
+    }
+
     return {
       message: 'your otp is verified login to your account!',
       user,
       success: true,
+      type: 'login',
     };
   }
   async roles(payload) {
